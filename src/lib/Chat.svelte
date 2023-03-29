@@ -1,7 +1,7 @@
 <script lang="ts">
   // import { fetchEventSource } from '@microsoft/fetch-event-source'
 
-  import { apiKeyStorage, chatsStorage, addMessage, clearMessages } from './Storage.svelte'
+  import { chatsStorage, addMessage, clearMessages } from './Storage.svelte'
   import {
     type Request,
     type Response,
@@ -20,7 +20,10 @@
 
   // This makes it possible to override the OpenAI API base URL in the .env file
   const apiBase = import.meta.env.VITE_API_BASE || 'https://api.openai.com'
+  // TODO fix
+  const OPEN_AI_API_KEY = import.meta.env.VITE_OPEN_AI_API_KEY || 'none'
 
+  
   export let params = { chatId: '' }
   const chatId: number = parseInt(params.chatId)
   
@@ -192,7 +195,7 @@
         method: 'POST',
         headers: {
           Authorization:
-          `Bearer ${$apiKeyStorage}`,
+          `Bearer ${$accessToken}`,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify(request),
@@ -210,7 +213,7 @@
         await fetch(apiBase + '/v1/chat/completions', {
           method: 'POST',
           headers: {
-            Authorization: `Bearer ${$apiKeyStorage}`,
+            Authorization: 'Bearer ' + OPEN_AI_API_KEY,
             'Content-Type': 'application/json'
           },
           body: JSON.stringify(request)
@@ -324,7 +327,7 @@
       await fetch(apiBase + '/v1/models', {
         method: 'GET',
         headers: {
-          Authorization: `Bearer ${$apiKeyStorage}`,
+          Authorization: 'Bearer ' + OPEN_AI_API_KEY,
           'Content-Type': 'application/json'
         }
       })

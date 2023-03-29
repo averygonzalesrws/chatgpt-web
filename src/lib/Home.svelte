@@ -1,7 +1,7 @@
 <script lang="ts">
-  import { apiKeyStorage } from './Storage.svelte'
+  import { accessToken } from './Storage.svelte'
 
-  $: apiKey = $apiKeyStorage
+  $: apiKey = $accessToken
 </script>
 
 <article class="message">
@@ -15,42 +15,8 @@
     <strong>private</strong>. You can also close the browser tab and come back later to continue the conversation.
   </div>
 </article>
-<article class="message" class:is-danger={!apiKey} class:is-warning={apiKey}>
-  <div class="message-body">
-    Set your OpenAI API key below:
 
-    <form
-      class="field has-addons has-addons-right"
-      on:submit|preventDefault={(event) => {
-        if (event.target && event.target[0].value) {
-        apiKeyStorage.set(event.target[0].value)
-        }
-      }}
-    >
-      <p class="control is-expanded">
-        <input
-          aria-label="OpenAI API key"
-          type="password"
-          autocomplete="off"
-          class="input"
-          class:is-danger={!apiKey}
-          value={apiKey}
-        />
-      </p>
-      <p class="control">
-        <button class="button is-info" type="submit">Save</button>
-      </p>
-    </form>
-
-    {#if !apiKey}
-      <p class="help is-danger">
-        Please enter your <a href="https://platform.openai.com/account/api-keys">OpenAI API key</a> above to use ChatGPT-web.
-        It is required to use ChatGPT-web.
-      </p>
-    {/if}
-  </div>
-</article>
-{#if apiKey}
+{#if accessToken}
   <article class="message is-info">
     <div class="message-body">
       Select an existing chat on the sidebar, or

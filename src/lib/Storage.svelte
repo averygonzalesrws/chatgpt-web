@@ -5,6 +5,7 @@
 
   export const chatsStorage = persisted('chats', [] as Chat[])
   export const apiKeyStorage = persisted('apiKey', '' as string)
+  export const accessToken = persisted('accessToken', '' as string)
 
   export const addChat = (): number => {
     const chats = get(chatsStorage)

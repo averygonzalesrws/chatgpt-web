@@ -1,7 +1,7 @@
 <script lang="ts">
   import { params, replace } from 'svelte-spa-router'
 
-  import { apiKeyStorage, chatsStorage, clearChats, deleteChat } from './Storage.svelte'
+  import { accessToken, chatsStorage, clearChats, deleteChat } from './Storage.svelte'
   import { exportAsMarkdown } from './Export.svelte'
 
   $: sortedChats = $chatsStorage.sort((a, b) => b.id - a.id)
@@ -29,7 +29,7 @@
   }
 </script>
 
-<aside class="menu">
+<aside class="menu"  class:is-hidden={!$accessToken}>
   <p class="menu-label">Chats</p>
   <ul class="menu-list">
     {#if sortedChats.length === 0}
@@ -39,7 +39,7 @@
         <ul>
           {#each sortedChats as chat}
             <li>
-              <a style="position: relative" href={`#/chat/${chat.id}`} class:is-disabled={!$apiKeyStorage} class:is-active={activeChatId === chat.id}>
+              <a style="position: relative" href={`#/chat/${chat.id}`}  class:is-active={activeChatId === chat.id}>
                 <a class="is-pulled-right is-hidden px-1 py-0 greyscale has-text-weight-bold delete-button" href={'$'} on:click|preventDefault={() => delChat(chat.id)}>🗑️</a>
                 {chat.name || `Chat ${chat.id}`}
               </a>
@@ -51,20 +51,16 @@
   </ul>
   <p class="menu-label">Actions</p>
   <ul class="menu-list">
+
     <li>
-      <a href={'#/'} class="panel-block" class:is-disabled={!$apiKeyStorage} class:is-active={!activeChatId}
-        ><span class="greyscale mr-2">🔑</span> API key</a
-      >
-    </li>
-    <li>
-      <a href={'#/chat/new'} class="panel-block" class:is-disabled={!$apiKeyStorage}
+      <a href={'#/chat/new'} class="panel-block"
         ><span class="greyscale mr-2">➕</span> New chat</a
       >
     </li>
     <li>
       <a class="panel-block"
         href="{'#/'}"
-        class:is-disabled={!$apiKeyStorage}
+      
         on:click|preventDefault={() => {
           const confirmDelete = window.confirm('Are you sure you want to delete all your chats?')
           if (confirmDelete) {
@@ -78,7 +74,7 @@
         <a
           href={'#/'}
           class="panel-block"
-          class:is-disabled={!apiKeyStorage}
+          class:is-disabled={!accessToken}
           on:click|preventDefault={() => {
             if (activeChatId) {
               exportAsMarkdown(activeChatId)
