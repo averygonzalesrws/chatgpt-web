@@ -34,21 +34,14 @@
   // A function to update the authentication state
   function updateAuth (authenticated, token, user) {
     authStore.set({ authenticated, token, user })
+    accessToken.set(token)
   }
 
   // A function to authenticate the user
   async function login (username, password) {
-    // Update the authentication state
-    updateAuth(true, 'abc123', username)
-
-    // Store the access token in local storage
-    accessToken.set('abc123')
-
-    dispatch('login', true)
-
-    /* try {
+    try {
       // Call the login API endpoint to obtain an access token
-      const response = await fetch('/api/login', {
+      const response = await fetch('https://4xs59euvwc.execute-api.us-west-2.amazonaws.com/chat-login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -56,21 +49,21 @@
         body: JSON.stringify({ username, password })
       })
 
-      if (!response.ok) {
+  
+      const authResponse = await response.json()
+  
+      if (!authResponse.isAuthorized) {
         throw new Error(`Failed to log in: ${response.statusText}`)
       }
-
-      const { token, user } = await response.json()
-
       // Update the authentication state
-      updateAuth(true, token, user)
+      updateAuth(true, authResponse.body.token, username)
 
       // Store the access token in local storage
-      accessToken.set('accessToken', token)
+      dispatch('login', true)
     } catch (error) {
       console.error(error)
       throw error
-    } */
+    }
   }
 
   // A function to log out the user
