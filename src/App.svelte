@@ -20,8 +20,9 @@ let loggedIn = false
 
 // Check if the access token is already stored in local storage
   if (typeof get(accessToken) !== 'undefined' && get(accessToken) !== '') {
-  // TODO validate with server
+  // TODO validate login with server.
     console.log(get(accessToken))
+
     loggedIn = true
 }
 

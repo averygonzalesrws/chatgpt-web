@@ -4,8 +4,11 @@
   import { writable } from 'svelte/store'
   import { accessToken } from './Storage.svelte'
 
+  // TODO this is bloated.
   let email = ''
   let password = ''
+  let errorMessage = ''
+
   const dispatch = createEventDispatcher()
 
   async function handleSubmit (event) {
@@ -40,20 +43,22 @@
   // A function to authenticate the user
   async function login (username, password) {
     try {
-      // Call the login API endpoint to obtain an access token
-      const response = await fetch('https://4xs59euvwc.execute-api.us-west-2.amazonaws.com/chat-login', {
+      const options = {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({ username, password })
-      })
-
+      }
+      // Call the login API endpoint to obtain an access token
+      const response = await fetch('https://0iowi4xcqh.execute-api.us-west-2.amazonaws.com/auth/login', options)
+  
   
       const authResponse = await response.json()
   
       if (!authResponse.isAuthorized) {
-        throw new Error(`Failed to log in: ${response.statusText}`)
+        errorMessage = `Failed to log in: ${authResponse.body.message}`
+        return
       }
       // Update the authentication state
       updateAuth(true, authResponse.body.token, username)
@@ -62,7 +67,6 @@
       dispatch('login', true)
     } catch (error) {
       console.error(error)
-      throw error
     }
   }
 
@@ -90,6 +94,12 @@
 
 <div class="card p-5">
   <form on:submit={handleSubmit}>
+    {#if errorMessage}
+    <div class="notification is-danger">
+      {errorMessage}
+    </div>
+    {/if}
+
     <div class="field">
       <label class="label">Email</label>
       <div class="control">
