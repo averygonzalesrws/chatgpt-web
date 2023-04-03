@@ -1,5 +1,5 @@
 <script lang="ts">
-  import Router, { replace } from 'svelte-spa-router'
+  import Router, { location, replace } from 'svelte-spa-router'
   import { wrap } from 'svelte-spa-router/wrap'
   import { get } from 'svelte/store'
 
@@ -65,11 +65,13 @@ let loggedIn = false
         <Sidebar />
       </div>
       <div class="column is-four-fifths" id="content">
-        {#if loggedIn}
-          <Router {routes} on:conditionsFailed={() => replace('/')}/>
-        {:else}
-          <Login on:login={handleLogin} />
-        {/if}
+        {#key $location}  
+          {#if loggedIn}
+            <Router {routes} on:conditionsFailed={() => replace('/')}/>
+          {:else}
+            <Login on:login={handleLogin} />
+          {/if}
+        {/key}
       </div>
     </div>
   </div>
