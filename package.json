@@ -42,6 +42,7 @@
   },
   "dependencies": {
     "@aws-amplify/ui-react": "^4.6.0",
+    "@aws-sdk/credential-provider-imds": "^3.310.0",
     "aws-amplify": "^5.1.1"
   }
 }
