@@ -12,6 +12,7 @@ export default defineConfig(({ command, mode, ssrBuild }) => {
   if (command === 'build') {
     return {
       plugins,
+      resolve: { alias: { './runtimeConfig': './runtimeConfig.browser' } },
       css: {
         postcss: {
           plugins: [
@@ -25,7 +26,9 @@ export default defineConfig(({ command, mode, ssrBuild }) => {
     }
   } else {
     return {
-      plugins
+      plugins,
+      resolve: { alias: { './runtimeConfig': './runtimeConfig.browser' } }
+
     }
   }
 })
