@@ -1,7 +1,8 @@
 <script lang="ts">
   import { params, replace } from 'svelte-spa-router'
+  import { Auth } from 'aws-amplify'
 
-  import { accessToken, chatsStorage, clearChats, deleteChat } from './Storage.svelte'
+  import { loggedIn, chatsStorage, clearChats, deleteChat } from './Storage.svelte'
   import { exportAsMarkdown } from './Export.svelte'
 
   $: sortedChats = $chatsStorage.sort((a, b) => b.id - a.id)
@@ -27,9 +28,18 @@
       deleteChat(chatId)
     }
   }
+  const handleLogout = async () => {
+    try {
+      await Auth.signOut()
+      $loggedIn = false
+      replace('/login')
+    } catch (error) {
+      console.error('Error signing out:', error)
+    }
+  }
 </script>
 
-<aside class="menu"  class:is-hidden={!$accessToken}>
+<aside class="menu"  class:is-hidden={!$loggedIn}>
   <p class="menu-label">Chats</p>
   <ul class="menu-list">
     {#if sortedChats.length === 0}
@@ -74,7 +84,7 @@
         <a
           href={'#/'}
           class="panel-block"
-          class:is-disabled={!accessToken}
+          class:is-disabled={!$loggedIn}
           on:click|preventDefault={() => {
             if (activeChatId) {
               exportAsMarkdown(activeChatId)
@@ -83,5 +93,15 @@
         >
       </li>
     {/if}
+    {#if $loggedIn}
+    <li>
+      <a
+        href={'#/'}
+        class="panel-block"
+        class:is-disabled={!$loggedIn}
+        on:click={handleLogout}><span class="greyscale mr-2">👋</span>Logout</a
+      >
+    </li>
+  {/if}
   </ul>
 </aside>

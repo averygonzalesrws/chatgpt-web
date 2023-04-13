@@ -39,5 +39,9 @@
     "tslib": "^2.5.0",
     "typescript": "^5.0.3",
     "vite": "^4.1.0"
+  },
+  "dependencies": {
+    "@aws-amplify/ui-react": "^4.6.0",
+    "aws-amplify": "^5.1.1"
   }
 }

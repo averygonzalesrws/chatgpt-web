@@ -1,11 +1,11 @@
 <script context="module" lang="ts">
   import { persisted } from 'svelte-local-storage-store'
-  import { get } from 'svelte/store'
+  import { get, writable } from 'svelte/store'
   import type { Chat, Message } from './Types.svelte'
 
   export const chatsStorage = persisted('chats', [] as Chat[])
   export const apiKeyStorage = persisted('apiKey', '' as string)
-  export const accessToken = persisted('accessToken', '' as string)
+  export const loggedIn = writable(false)
 
   export const addChat = (): number => {
     const chats = get(chatsStorage)

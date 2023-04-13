@@ -1,8 +1,9 @@
 <script lang="ts">
   import Router, { location, replace } from 'svelte-spa-router'
   import { wrap } from 'svelte-spa-router/wrap'
-  import { get } from 'svelte/store'
-
+  import { onMount } from 'svelte'
+  import { Amplify, Auth, Hub } from 'aws-amplify'
+  import awsConfig from './aws-exports'
   import Navbar from './lib/Navbar.svelte'
   import Sidebar from './lib/Sidebar.svelte'
   import Footer from './lib/Footer.svelte'
@@ -10,21 +11,68 @@
   import Chat from './lib/Chat.svelte'
   import NewChat from './lib/NewChat.svelte'
   import Login from './lib/Login.svelte'
-  import { accessToken, chatsStorage } from './lib/Storage.svelte'
+  import { chatsStorage, loggedIn } from './lib/Storage.svelte'
 
   // Check if the API key is passed in as a "key" query parameter - if so, save it
   // Example: https://niek.github.io/chatgpt-web/#/?key=sk-...
+  // Amplify logic
+  onMount(() => {
+    const isLocalhost = Boolean(
+      window.location.hostname === 'localhost' ||
+        window.location.hostname === '[::1]' ||
+        window.location.hostname.match(
+          /^127(?:\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}$/
+        )
+    )
+
+    const [
+      localRedirectSignIn,
+      productionRedirectSignIn
+    ] = awsConfig.oauth.redirectSignIn.split(',')
+
+    const [
+      localRedirectSignOut,
+      productionRedirectSignOut
+    ] = awsConfig.oauth.redirectSignOut.split(',')
+
+    const updatedAwsConfig = {
+      ...awsConfig,
+      oauth: {
+        ...awsConfig.oauth,
+        redirectSignIn: isLocalhost ? localRedirectSignIn : productionRedirectSignIn,
+        redirectSignOut: isLocalhost ? localRedirectSignOut : productionRedirectSignOut
+      }
+    }
+
+    Amplify.configure(updatedAwsConfig)
+
+    Hub.listen('auth', ({ payload: { event, data } }) => {
+      console.log(event)
+
+      switch (event) {
+        case 'signIn':
+        case 'confirmSignUp':
+        case 'cognitoHostedUI':
+          handleLogin() // Call handleLogin function when the user signs in
+          break
+        case 'signOut':
+          $loggedIn = false
+          break
+        case 'signIn_failure':
+        case 'cognitoHostedUI_failure':
+          console.log(data)
+          console.log('Sign in failure', data)
+          break
+      }
+    })
+
+    Auth.currentAuthenticatedUser()
+      .then(() => handleLogin())
+      .catch(() => console.log('Not signed in'))
+  })
 
 // Define a variable to track whether the user is logged in
-let loggedIn = false
 
-// Check if the access token is already stored in local storage
-  if (typeof get(accessToken) !== 'undefined' && get(accessToken) !== '') {
-  // TODO validate login with server.
-    console.log(get(accessToken))
-
-    loggedIn = true
-}
 
   // The definition of the routes with some conditions
   const routes = {
@@ -35,14 +83,14 @@ let loggedIn = false
     '/chat/new': wrap({
       component: NewChat,
       conditions: () => {
-        return loggedIn
+        return $loggedIn
       }
     }),
 
     '/chat/:chatId': wrap({
       component: Chat,
       conditions: (detail) => {
-        return loggedIn && $chatsStorage.find((chat) => chat.id === parseInt(detail?.params?.chatId as string)) !== undefined
+        return $loggedIn && $chatsStorage.find((chat) => chat.id === parseInt(detail?.params?.chatId as string)) !== undefined
       }
     }),
 
@@ -51,14 +99,16 @@ let loggedIn = false
 
   // When the login form is submitted, set the loggedIn variable to true
   const handleLogin = () => {
-    loggedIn = true
+    $loggedIn = true
     replace('/')
   }
+
 </script>
 
 <Navbar />
 
-<section class="section">
+<section class="section" >
+
   <div class="container is-fullhd">
     <div class="columns">
       <div class="column is-one-fifth">
@@ -66,7 +116,7 @@ let loggedIn = false
       </div>
       <div class="column is-four-fifths" id="content">
         {#key $location}  
-          {#if loggedIn}
+          {#if $loggedIn}
             <Router {routes} on:conditionsFailed={() => replace('/')}/>
           {:else}
             <Login on:login={handleLogin} />

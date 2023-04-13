@@ -1,7 +1,6 @@
 <script lang="ts">
-  import { accessToken } from './Storage.svelte'
+  import { loggedIn } from './Storage.svelte'
 
-  $: apiKey = $accessToken
 </script>
 
 <article class="message">
@@ -14,7 +13,7 @@
   </div>
 </article>
 
-{#if accessToken}
+{#if $loggedIn}
   <article class="message is-info">
     <div class="message-body">
       Select an existing chat on the sidebar, or

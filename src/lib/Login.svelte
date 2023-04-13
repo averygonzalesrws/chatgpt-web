@@ -1,123 +1,140 @@
-<!-- Login.svelte -->
-<script>
-  import { createEventDispatcher } from 'svelte'
-  import { writable } from 'svelte/store'
-  import { accessToken } from './Storage.svelte'
+<script lang="ts">
+  import { Auth } from "aws-amplify";
 
-  // TODO this is bloated.
-  let email = ''
-  let password = ''
-  let errorMessage = ''
+  let username = "";
+  let password = "";
+  let confirmationCode = "";
+  let showConfirmationForm = false;
+  let errorMessage = "";
 
-  const dispatch = createEventDispatcher()
+  function isValidEmployeeEmail (str: string): boolean {
+    return (/^(?=.*@(retailerwebservices\.com|nationwidegroup\.org)$).+$/i.test(username))
+  }
 
-  async function handleSubmit (event) {
-    event.preventDefault()
-
+  const signIn = async (username: string, password: string) => {
     try {
-      const user = await login(email, password)
+      // Validate email address
+      if (!isValidEmployeeEmail(username)) {
+        errorMessage = 'Invalid email address. Please use a valid @retailerwebservices.com or @nationwidegroup.org email address.'
+        return;
+      }
 
-      // User is authenticated, navigate to a new page
+      console.log(username, password);
+      const user = await Auth.signIn(username, password);
+      console.log(user);
+      return user;
     } catch (error) {
-      // Display an error message
-      console.log(error)
+      console.error(error);
+      if (error.code === "UserNotConfirmedException") {
+        showConfirmationForm = true;
+      } else {
+        errorMessage = error;
+      }
     }
-  }
-
-
-  const DEFAULT_STATE = {
-    authenticated: false,
-    token: null,
-    user: null
-  }
-
-  // A writable store that holds the authentication state
-  export const authStore = writable(DEFAULT_STATE)
-
-  // A function to update the authentication state
-  function updateAuth (authenticated, token, user) {
-    authStore.set({ authenticated, token, user })
-    accessToken.set(token)
-  }
-
-  // A function to authenticate the user
-  async function login (username, password) {
+  };
+  const signUp = async (username: string, password: string) => {
     try {
-      const options = {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ username, password })
+      if (!isValidEmployeeEmail(username)) {
+        errorMessage = 'Invalid email address. Please use a valid @retailerwebservices.com or @nationwidegroup.org email address.'
+        return;
       }
-      // Call the login API endpoint to obtain an access token
-      const response = await fetch('https://0iowi4xcqh.execute-api.us-west-2.amazonaws.com/auth/login', options)
-  
-  
-      const authResponse = await response.json()
-  
-      if (!authResponse.isAuthorized) {
-        errorMessage = `Failed to log in: ${authResponse.body.message}`
-        return
-      }
-      // Update the authentication state
-      updateAuth(true, authResponse.body.token, username)
-
-      // Store the access token in local storage
-      dispatch('login', true)
+      const { user } = await Auth.signUp({
+        username,
+        password,
+        attributes: {
+          email: username
+        }
+      });
+      console.log(user);
+      showConfirmationForm = true;
     } catch (error) {
-      console.error(error)
+      console.error(error);
+      errorMessage = error;
     }
-  }
+  };
 
-  // A function to log out the user
-  function logout () {
-    // Update the authentication state
-    updateAuth(false, null, null)
-
-    // Remove the access token from local storage
-    accessToken.removeItem('accessToken')
-  }
-
-  // A function to check if the user is authenticated
-  function isAuthenticated () {
-    const { authenticated, token } = $authStore
-    return authenticated && token != null
-  }
-
-  // A function to get the user object
-  function getUser () {
-    const { user } = $authStore
-    return user
-  }
+  const confirmSignUp = async (username: string, confirmationCode: string) => {
+    try {
+      await Auth.confirmSignUp(username, confirmationCode);
+      showConfirmationForm = false;
+    } catch (error) {
+      console.error(error);
+      errorMessage = error;
+    }
+  };
 </script>
 
 <div class="card p-5">
-  <form on:submit={handleSubmit}>
-    {#if errorMessage}
+  {#if errorMessage}
     <div class="notification is-danger">
       {errorMessage}
     </div>
-    {/if}
+  {/if}
 
-    <div class="field">
-      <label class="label">Email</label>
-      <div class="control">
-        <input class="input" type="email" placeholder="Email" bind:value={email} required />
+  {#if showConfirmationForm}
+    <form
+      on:submit|preventDefault={() => confirmSignUp(username, confirmationCode)}
+    >
+      <div class="field">
+        <label class="label">Email Confirmation Code</label>
+        <div class="control">
+          <input
+            class="input"
+            type="text"
+            placeholder="Confirmation code"
+            bind:value={confirmationCode}
+            required
+          />
+        </div>
       </div>
-    </div>
+      <div class="field">
+        <div class="control">
+          <button class="button is-primary" type="submit"
+            >Confirm Sign Up</button
+          >
+        </div>
+      </div>
+    </form>
+  {:else}
+    <form on:submit|preventDefault={() => signIn(username, password)}>
+      <div class="field">
+        <label class="label">Email</label>
+        <div class="control">
+          <input
+            class="input"
+            type="email"
+            placeholder="Email"
+            bind:value={username}
+            required
+          />
+        </div>
+      </div>
 
-    <div class="field">
-      <label class="label">Password</label>
-      <div class="control">
-        <input class="input" type="password" placeholder="Password" bind:value={password} required />
+      <div class="field">
+        <label class="label">Password</label>
+        <div class="control">
+          <input
+            class="input"
+            type="password"
+            placeholder="Password"
+            bind:value={password}
+            required
+          />
+        </div>
       </div>
-    </div>
 
-    <div class="field">
-      <div class="control">
-        <button class="button is-primary" type="submit">Login</button>
+      <div class="field is-grouped">
+        <div class="control">
+          <button
+            class="button is-primary"
+            type="button"
+            on:click={() => signUp(username, password)}>Sign Up</button
+          >
+        </div>
+        <div class="control">
+          <button class="button is-primary" type="submit">Login</button>
+        </div>
       </div>
-    </div>
-  </form>
+    </form>
+  {/if}
 </div>
