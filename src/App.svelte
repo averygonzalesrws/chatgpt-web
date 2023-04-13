@@ -2,8 +2,7 @@
   import Router, { location, replace } from 'svelte-spa-router'
   import { wrap } from 'svelte-spa-router/wrap'
   import { onMount } from 'svelte'
-  import { Amplify, Auth, Hub } from 'aws-amplify'
-  import awsConfig from './aws-exports'
+  import { Auth, Hub } from 'aws-amplify'
   import Navbar from './lib/Navbar.svelte'
   import Sidebar from './lib/Sidebar.svelte'
   import Footer from './lib/Footer.svelte'
@@ -17,35 +16,6 @@
   // Example: https://niek.github.io/chatgpt-web/#/?key=sk-...
   // Amplify logic
   onMount(() => {
-    const isLocalhost = Boolean(
-      window.location.hostname === 'localhost' ||
-        window.location.hostname === '[::1]' ||
-        window.location.hostname.match(
-          /^127(?:\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}$/
-        )
-    )
-
-    const [
-      localRedirectSignIn,
-      productionRedirectSignIn
-    ] = awsConfig.oauth.redirectSignIn.split(',')
-
-    const [
-      localRedirectSignOut,
-      productionRedirectSignOut
-    ] = awsConfig.oauth.redirectSignOut.split(',')
-
-    const updatedAwsConfig = {
-      ...awsConfig,
-      oauth: {
-        ...awsConfig.oauth,
-        redirectSignIn: isLocalhost ? localRedirectSignIn : productionRedirectSignIn,
-        redirectSignOut: isLocalhost ? localRedirectSignOut : productionRedirectSignOut
-      }
-    }
-
-    Amplify.configure(updatedAwsConfig)
-
     Hub.listen('auth', ({ payload: { event, data } }) => {
       console.log(event)
 

@@ -1,0 +1,21 @@
+{
+  "staging": {
+    "awscloudformation": {
+      "AuthRoleName": "amplify-amplifye2cda255f1614-staging-182507-authRole",
+      "UnauthRoleArn": "arn:aws:iam::219390510144:role/amplify-amplifye2cda255f1614-staging-182507-unauthRole",
+      "AuthRoleArn": "arn:aws:iam::219390510144:role/amplify-amplifye2cda255f1614-staging-182507-authRole",
+      "Region": "us-west-2",
+      "DeploymentBucketName": "amplify-amplifye2cda255f1614-staging-182507-deployment",
+      "UnauthRoleName": "amplify-amplifye2cda255f1614-staging-182507-unauthRole",
+      "StackName": "amplify-amplifye2cda255f1614-staging-182507",
+      "StackId": "arn:aws:cloudformation:us-west-2:219390510144:stack/amplify-amplifye2cda255f1614-staging-182507/85155c30-da28-11ed-8b66-02f09e9661b3",
+      "AmplifyAppId": "d3myyabvnfwrb2"
+    },
+    "categories": {
+      "auth": {
+        "chatgptweb1f9b3c03": {},
+        "chatgptweb": {}
+      }
+    }
+  }
+}
